@@ -29,6 +29,7 @@
           enabled: yes
           state: started
         when: nomad_status
+        notify: StartNomadAgent
         tags: 
           - nomad
 
@@ -55,6 +56,7 @@
           name: python-nomad
         tags: 
           - nomad
+          
       - name: Install Docker
         script: ../scripts/install-docker.sh
         args:
@@ -74,3 +76,9 @@
         service: name=nomad state=restarted
         tags: 
           - nomad
+      
+      - name: StartNomadAgent
+        command: sudo nomad agent -dev -bind 0.0.0.0
+        tags: 
+          - nomad
+      

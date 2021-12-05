@@ -80,6 +80,7 @@ job "gatewayfm-erigon-job" {
       config {
         image = "thorax/erigon"
         args = [
+          "erigon" , "--chain=ropsten",
           "--metrics", "--metrics.addr=0.0.0.0",
           "--metrics.port=6060",
           "--private.api.addr=0.0.0.0:9090",
@@ -88,7 +89,7 @@ job "gatewayfm-erigon-job" {
 
         volumes = [
             # Use absolute paths to mount arbitrary paths on the host
-            "/home/erigon/.local/share/erigon"
+            # "/home/erigon/.local/share/erigon"
           ]
         ports = ["http","tcp_30303","tcp_30304","udp_30303","udp_30304"]
       }
