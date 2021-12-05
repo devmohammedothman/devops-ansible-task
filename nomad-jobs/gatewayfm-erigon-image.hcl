@@ -79,6 +79,12 @@ job "gatewayfm-erigon-job" {
       # Configuration is specific to each driver.
       config {
         image = "thorax/erigon"
+        args = [
+          "--metrics", "--metrics.addr=0.0.0.0",
+          "--metrics.port=6060",
+          "--private.api.addr=0.0.0.0:9090",
+          "--pprof", "--pprof.addr=0.0.0.0","--pprof.port=6061"
+        ]
         ports = ["http","tcp_30303","tcp_30304","udp_30303","udp_30304"]
       }
       # Specify the maximum resources required to run the task,
