@@ -1,0 +1,59 @@
+#################################################
+# DO Community Playbooks: Docker
+#################################################
+---
+- hosts: workernodes
+  vars_files:
+    - ./vars/container-vars.yml
+
+  tasks:  
+    - name: create gatewayfm-erigon job
+      community.general.nomad_job:
+        host: localhost
+        content_format: hcl
+        force_start : true
+        state: present
+        content: "{{ lookup('ansible.builtin.file', './nomad-jobs/gatewayfm-erigon-image.hcl') }}"
+        timeout: 120
+        use_ssl: no
+        validate_certs: no
+      tags:
+        - erigon_nomad_job
+        
+    # - name: Create nomad job
+    #   community.general.nomad_job:
+    #     host: localhost
+    #     content_format: hcl
+    #     force_start : true
+    #     state: present
+    #     content: "{{ lookup('ansible.builtin.file', './nomad-jobs/sample-nginx.hcl') }}"
+    #     timeout: 120
+    #     use_ssl: no
+    #     validate_certs: no
+    #   tags:
+    #     - nomad_job1
+    
+    # - name: Second nomad job
+    #   community.general.nomad_job:
+    #     host: localhost
+    #     content_format: hcl
+    #     force_start : true
+    #     state: present
+    #     content: "{{ lookup('ansible.builtin.file', './nomad-jobs/sample-web.hcl') }}"
+    #     timeout: 120
+    #     use_ssl: no
+    #     validate_certs: no
+    #   tags:
+    #     - nomad_job2
+
+    
+
+    # Creates the hello world container for verifying docker installation
+      # - name: Create default containers
+      #   docker_container:
+      #     name: "{{ default_container_name }}{{ item }}"
+      #     image: "{{ default_container_image }}"
+      #     state: present
+      #   with_sequence: count={{ create_containers }}
+    
+    
