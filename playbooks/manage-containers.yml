@@ -7,8 +7,6 @@
     - ../vars/container-vars.yml
 
   tasks:  
-    - name: start nomad
-      command: "nomad agent -dev -bind 0.0.0.0"
     - name: create gatewayfm-erigon job
       community.general.nomad_job:
         host: localhost
