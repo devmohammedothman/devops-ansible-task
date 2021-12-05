@@ -1,0 +1,76 @@
+---
+  - hosts: workernodes
+    tasks:
+      - name: Update Hostnames
+        hostname:
+          name: "{{ new_hostname }}"
+        tags: 
+          - hostname
+      - name: Add hostname to /etc/hosts
+        lineinfile:
+          path: /etc/hosts
+          regexp: '^127\.0\.0\.1[ \t]+localhost'
+          line: '127.0.0.1 localhost {{ new_hostname }}'
+          state: present
+        tags: 
+          - hostname
+
+      - name: Install nomad if not exist on the remote node
+        script: ../scripts/install-nomad.sh
+        args:
+          creates: /install-nomad.sh
+        register: nomad_status
+        tags: 
+          - nomad
+      
+      - name: EnableNOMAD Systemd Service
+        systemd:
+          name: nomad
+          enabled: yes
+          state: started
+        when: nomad_status
+        tags: 
+          - nomad
+
+      - name: Configure Nomad Service
+        template:
+          src: ../templates/nomad.service.j2
+          dest: /etc/systemd/system/nomad.service
+          owner: root
+          group: root
+          mode: 0755
+        notify: 
+          - RetartNOMAD
+        tags: 
+          - nomad
+        
+      - name: Debug Status
+        debug:
+          msg: 
+            - "{{ nomad_status }}"
+        tags: 
+          - nomad
+      - name: Install python-nomad
+        pip:
+          name: python-nomad
+        tags: 
+          - nomad
+      - name: Install Docker
+        script: ../scripts/install-docker.sh
+        args:
+          creates: /install-docker.sh
+        register: install_docker
+        tags: 
+          - docker
+    
+      - name: debug docker install
+        debug:
+          msg: "{{install_docker}}"
+        tags: 
+          - docker
+
+    handlers:
+      - name: RetartNOMAD
+        service: name=nomad state=restarted
+        tags: 
+          - nomad

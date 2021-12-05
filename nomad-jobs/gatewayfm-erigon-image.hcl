@@ -32,14 +32,25 @@ job "gatewayfm-erigon-job" {
       # be something like "46283", but we refer to it via the
       # TCP # to = 65535
       # label "http".
-      port "http" {}
+      port "http" {
+        to = 8080
+      }
 
-      # This requests a static port on 443 on the host. This
-      # will restrict this task to running once per host, since
-      # there is only one port 443 on each host.
-      #port "https" {
-      #  static = 443
-      #}
+      port "tcp_30303" {
+        to = 30303
+      }
+
+      port "tcp_30304" {
+        to = 30304
+      }
+
+      port "udp_30303" {
+        to = 30303
+      }
+
+      port "udp_30304" {
+        to = 30304
+      }
     }
 
     # The service block tells Nomad how to register this service
@@ -68,6 +79,7 @@ job "gatewayfm-erigon-job" {
       # Configuration is specific to each driver.
       config {
         image = "thorax/erigon"
+        ports = ["http","tcp_30303","tcp_30304","udp_30303","udp_30304"]
       }
       # Specify the maximum resources required to run the task,
       # include CPU and memory.

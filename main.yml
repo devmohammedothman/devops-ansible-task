@@ -1,4 +1,4 @@
 --- 
-  - import_playbook: basic-utility.yml
-  - import_playbook: provision-node.yml
-  - import_playbook: manage-containers.yml
+  - import_playbook: ./playbooks/basic-utility.yml
+  - import_playbook: ./playbooks/provision-node.yml
+  - import_playbook: ./playbooks/manage-containers.yml
