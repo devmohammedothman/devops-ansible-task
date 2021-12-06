@@ -23,16 +23,6 @@
         tags: 
           - nomad
       
-      - name: EnableNOMAD Systemd Service
-        systemd:
-          name: nomad
-          enabled: yes
-          state: started
-        when: nomad_status
-        notify: StartNomadAgent
-        tags: 
-          - nomad
-
       - name: Configure Nomad Service
         template:
           src: ../templates/nomad.service.j2
@@ -51,6 +41,16 @@
             - "{{ nomad_status }}"
         tags: 
           - nomad
+
+      - name: EnableNOMAD Systemd Service
+        systemd:
+          name: nomad
+          enabled: yes
+          state: started
+        when: nomad_status
+        tags: 
+          - nomad
+
       - name: Install python-nomad
         pip:
           name: python-nomad
@@ -77,8 +77,4 @@
         tags: 
           - nomad
       
-      - name: StartNomadAgent
-        command: sudo nomad agent -dev -bind 0.0.0.0
-        tags: 
-          - nomad
       
