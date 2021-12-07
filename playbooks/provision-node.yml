@@ -1,6 +1,44 @@
 ---
   - hosts: workernodes
+    vars_files:
+      - ../vars/vars.yml
+
     tasks:
+      ## Mounting Volume on the host machine, Supposing that we are working on EC2 ubuntu machine with only root volume
+      - name: Ansible check directory.
+        stat:
+          path: /{{ volume_mount_dir }}
+        register: volume_status
+        tags: 
+          - VolumeMount
+      - name: "echo if directory already existed"
+        debug:
+          msg: "Mounted directory is already existed"
+        when: volume_status.stat.exists
+        tags: 
+          - VolumeMount
+
+      - name: "Ansible Create directory if not exists"
+        file:
+          path: /{{ volume_mount_dir }}
+          state: directory
+          mode: 0755
+          group: root
+          owner: root
+        when: volume_status.stat.exists == false
+        tags: 
+          - VolumeMount
+      - name: Format EBS Volume
+        command: mkfs -t ext4 {{ volume_path }} 
+        when: volume_status.stat.exists == false
+        tags: 
+          - VolumeMount
+      - name: Mount EBS Volume
+        command: mount {{ volume_path }} /{{ volume_mount_dir }}
+        ignore_errors: yes
+        tags: 
+          - VolumeMount
+
       - name: Update Hostnames
         hostname:
           name: "{{ new_hostname }}"

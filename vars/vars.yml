@@ -1,0 +1,11 @@
+---
+
+volume_path: /dev/nvme1n1
+volume_mount_dir: erigonVolumeData
+
+
+create_containers: 1
+default_container_name: hello-world-container
+default_container_image: hello-world
+default_container_command: sleep 1d
+
