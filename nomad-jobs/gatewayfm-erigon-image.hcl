@@ -57,17 +57,17 @@ job "gatewayfm_job" {
       }
     }
 
-    volume "erigon-volume" {
-      type            = "csi"
-      source          = "ebs-test1"
-      read_only       = false
-      attachment_mode = "file-system"
-      access_mode     = "single-node-writer"
-      per_alloc       = true
-      mount_options {
-        fs_type     = "ext4"
-      }
-    }
+    // volume "erigon-volume" {
+    //   type            = "csi"
+    //   source          = "erigonVolumeData"
+    //   read_only       = false
+    //   attachment_mode = "file-system"
+    //   access_mode     = "single-node-writer"
+    //   per_alloc       = true
+    //   mount_options {
+    //     fs_type     = "ext4"
+    //   }
+    // }
     # The service block tells Nomad how to register this service
     # with Consul for service discovery and monitoring.
     service {
@@ -95,6 +95,7 @@ job "gatewayfm_job" {
       # Configuration is specific to each driver.
       config {
         image = "thorax/erigon:latest"
+        privileged = false
         args = [
           "erigon" , "--chain=ropsten",
           "--metrics", "--metrics.addr=0.0.0.0",
@@ -104,26 +105,26 @@ job "gatewayfm_job" {
         ]
 
         // env {
-        //   MOUNT_PATH = "${NOMAD_ALLOC_DIR}/erigonData"
+        //   MOUNT_PATH = "${NOMAD_ALLOC_DIR}/erigonVolumeData"
         // }
 
-        volume_mount {
-          volume      = "erigon-volume"
-          destination = "/home/erigon/.local/share/erigon"
-        }
+        // volume_mount {
+        //   volume      = "erigon-volume"
+        //   destination = "/home/erigon/.local/share/erigon"
+        // }
 
-        volumes = [
-            # Use absolute paths to mount arbitrary paths on the host
-            # ${XDG_DATA_HOME:-~/.local/share}/erigon:/home/erigon/.local/share/erigon
-            "/erigonData:/home/erigon/.local/share/erigon"
-          ]
+        // volumes = [
+        //     # Use absolute paths to mount arbitrary paths on the host
+        //     # ${XDG_DATA_HOME:-~/.local/share}/erigon:/home/erigon/.local/share/erigon
+        //     "/erigonVolumeData:/home/erigon/.local/share/erigon"
+        // ]
         ports = ["http","tcp_30303","tcp_30304","udp_30303","udp_30304"]
       }
 
       csi_plugin {
-        id        = "aws-ebs0"
-        type      = "controller"
-        mount_dir = "/erigonData"
+        id        = "aws-ebs"
+        type      = "node"
+        mount_dir = "/erigonVolumeData"
       }
       # Specify the maximum resources required to run the task,
       # include CPU and memory.
@@ -141,17 +142,17 @@ job "gatewayfm_job" {
       }
     }
 
-    volume "prometheus-volume" {
-      type            = "csi"
-      source          = "ebs-test1"
-      read_only       = false
-      attachment_mode = "file-system"
-      access_mode     = "single-node-writer"
-      per_alloc       = true
-      mount_options {
-        fs_type     = "ext4"
-      }
-    }
+    // volume "prometheus-volume" {
+    //   type            = "csi"
+    //   source          = "erigonVolumeData"
+    //   read_only       = false
+    //   attachment_mode = "file-system"
+    //   access_mode     = "single-node-writer"
+    //   per_alloc       = true
+    //   mount_options {
+    //     fs_type     = "ext4"
+    //   }
+    // }
     service {
       name = "prometheus-service"
       port = "http_9090"
@@ -162,13 +163,15 @@ job "gatewayfm_job" {
       //   timeout  = "2s"
       // }
     }
-
+    
     task "prometheus-task" {
       driver = "docker"
-
+      
       config{
         image = "prom/prometheus:v2.30.2"
         ports = ["http_9090"]
+        privileged = false
+        
         args = [
           "--log.level=warn" , "--config.file=/etc/prometheus/prometheus.yml",
           "--storage.tsdb.path=/prometheus", 
@@ -176,29 +179,35 @@ job "gatewayfm_job" {
           "--web.console.templates=/usr/share/prometheus/consoles"
         ]
 
-        env {
-            # this will be available as the MOUNT_PATH environment
-            # variable in the task
-            MOUNT_PATH = "${NOMAD_ALLOC_DIR}/erigonData"
-          }
+        // env {
+        //     MOUNT_PATH = "${NOMAD_ALLOC_DIR}/erigonVolumeData"
+        //   }
 
-        volume_mount {
-            volume      = "prometheus-volume"
-            destination = "${NOMAD_ALLOC_DIR}/erigonData"
-          }
-        
-        volumes = [
-            # Use absolute paths to mount arbitrary paths on the host
-            # ${ERIGON_PROMETHEUS_CONFIG:-./cmd/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml
-            # ${XDG_DATA_HOME:-~/.local/share}/erigon-prometheus:/prometheus
-            "/erigonData:/etc/prometheus/prometheus.yml",
-            "/erigonData:/prometheus",
-        ]
+        // volume_mount {
+        //     volume      = "prometheus-volume"
+        //     destination = "${NOMAD_ALLOC_DIR}/erigonVolumeData"
+        //   }
+        // volumes = [
+        //     # Use absolute paths to mount arbitrary paths on the host
+        //     # ${ERIGON_PROMETHEUS_CONFIG:-./cmd/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml
+        //     # ${XDG_DATA_HOME:-~/.local/share}/erigon-prometheus:/prometheus
+        //     "/erigonVolumeData:/etc/prometheus/prometheus.yml",
+        //     "/erigonVolumeData:/prometheus"
+        // ]
+      // traget inside the container
+      // source is the volume
+        // mounts = [
+        //             {
+        //               type = "volume"
+        //               target = "/prometheus"
+        //               source = "/erigonVolumeData/prometheus"
+        //             }
+        //         ]
       }
       csi_plugin {
-        id        = "aws-ebs0"
-        type      = "controller"
-        mount_dir = "/erigonData"
+        id        = "aws-ebs"
+        type      = "node"
+        mount_dir = "/erigonVolumeData"
       }
       resources {
         cpu    = 500 # MHz
@@ -214,17 +223,17 @@ job "gatewayfm_job" {
       }
     }
 
-    volume "grafana-volume" {
-      type            = "csi"
-      source          = "ebs-test1"
-      read_only       = false
-      attachment_mode = "file-system"
-      access_mode     = "single-node-writer"
-      per_alloc       = true
-      mount_options {
-        fs_type     = "ext4"
-      }
-    }
+    // volume "grafana-volume" {
+    //   type            = "csi"
+    //   source          = "erigonVolumeData"
+    //   read_only       = false
+    //   attachment_mode = "file-system"
+    //   access_mode     = "single-node-writer"
+    //   per_alloc       = true
+    //   mount_options {
+    //     fs_type     = "ext4"
+    //   }
+    // }
     service {
       name = "grafana-service"
       port = "http_3000"
@@ -242,40 +251,35 @@ job "gatewayfm_job" {
       config{
         image = "grafana/grafana:8.2.2"
         ports = ["http_3000"]
-        args = [
-            "--log.level=warn" , "--config.file=/etc/prometheus/prometheus.yml",
-            "--storage.tsdb.path=/prometheus", 
-            "--web.console.libraries=/usr/share/prometheus/console_libraries",
-            "--web.console.templates=/usr/share/prometheus/consoles"
-          ]
+        privileged = false
       
-      env {
-          # this will be available as the MOUNT_PATH environment
-          # variable in the task
-          MOUNT_PATH = "${NOMAD_ALLOC_DIR}/erigonData"
-        }
+      # this will be available as the MOUNT_PATH environment
+      # variable in the task
+      // env {
+      //     MOUNT_PATH = "${NOMAD_ALLOC_DIR}/erigonVolumeData"
+      //   }
 
-      volume_mount {
-        volume      = "grafana-volume"
-        destination = "${NOMAD_ALLOC_DIR}/erigonData"
-      }
+      // volume_mount {
+      //   volume      = "grafana-volume"
+      //   destination = "${NOMAD_ALLOC_DIR}/erigonVolumeData"
+      // }
 
-      volumes = [
-            # Use absolute paths to mount arbitrary paths on the host
-            # ${ERIGON_GRAFANA_CONFIG:-./cmd/prometheus/grafana.ini}:/etc/grafana/grafana.ini
-            # ./cmd/prometheus/datasources:/etc/grafana/provisioning/datasources
-            # ./cmd/prometheus/dashboards:/etc/grafana/provisioning/dashboards
-            # ${XDG_DATA_HOME:-~/.local/share}/erigon-grafana:/var/lib/grafana
-            "/erigonData:/etc/grafana/grafana.ini",
-            "/erigonData:/etc/grafana/provisioning/datasources",
-            "/erigonData:/etc/grafana/provisioning/dashboards",
-            "/erigonData:/var/lib/grafana"
-        ]
+      // volumes = [
+      //       # Use absolute paths to mount arbitrary paths on the host
+      //       # ${ERIGON_GRAFANA_CONFIG:-./cmd/prometheus/grafana.ini}:/etc/grafana/grafana.ini
+      //       # ./cmd/prometheus/datasources:/etc/grafana/provisioning/datasources
+      //       # ./cmd/prometheus/dashboards:/etc/grafana/provisioning/dashboards
+      //       # ${XDG_DATA_HOME:-~/.local/share}/erigon-grafana:/var/lib/grafana
+      //       "/erigonVolumeData:/etc/grafana/grafana.ini",
+      //       "/erigonVolumeData:/etc/grafana/provisioning/datasources",
+      //       "/erigonVolumeData:/etc/grafana/provisioning/dashboards",
+      //       "/erigonVolumeData:/var/lib/grafana"
+      //   ]
       }
       csi_plugin {
-        id        = "aws-ebs0"
-        type      = "controller"
-        mount_dir = "/erigonData"
+        id        = "aws-ebs"
+        type      = "node"
+        mount_dir = "/erigonVolumeData"
       }
       resources {
         cpu    = 500 # MHz
@@ -292,17 +296,17 @@ job "gatewayfm_job" {
       }
     }
 
-    volume "rpcdaemon-volume" {
-      type            = "csi"
-      source          = "ebs-test1"
-      read_only       = false
-      attachment_mode = "file-system"
-      access_mode     = "single-node-writer"
-      per_alloc       = true
-      mount_options {
-        fs_type     = "ext4"
-      }
-    }
+    // volume "rpcdaemon-volume" {
+    //   type            = "csi"
+    //   source          = "erigonVolumeData"
+    //   read_only       = false
+    //   attachment_mode = "file-system"
+    //   access_mode     = "single-node-writer"
+    //   per_alloc       = true
+    //   mount_options {
+    //     fs_type     = "ext4"
+    //   }
+    // }
     service {
       name = "rpcdaemon-service"
       port = "http_8545"
@@ -320,6 +324,7 @@ job "gatewayfm_job" {
       config{
         image = "thorax/erigon:latest"
         ports = ["http_8545"]
+        privileged = false
         args = [
           "rpcdaemon",
           "--datadir=/home/erigon/.local/share/erigon" , 
@@ -330,30 +335,29 @@ job "gatewayfm_job" {
           "--http.api=eth,debug,net",
           "--ws"
         ]
+        // service:erigon
+        // entrypoint = [ "" ]
         
-        env {
-            # this will be available as the MOUNT_PATH environment
-            # variable in the task
-            MOUNT_PATH = "${NOMAD_ALLOC_DIR}/erigonData"
-          }
+        // env {
+        //     MOUNT_PATH = "${NOMAD_ALLOC_DIR}/erigonVolumeData"
+        //   }
 
-       
-        volume_mount {
-            volume      = "rpcdaemon-volume"
-            destination = "${NOMAD_ALLOC_DIR}/erigonData"
-          }
+        // volume_mount {
+        //     volume      = "rpcdaemon-volume"
+        //     destination = "${NOMAD_ALLOC_DIR}/erigonVolumeData"
+        //   }
 
-        volumes = [
-            # Use absolute paths to mount arbitrary paths on the host
-            # {XDG_DATA_HOME:-~/.local/share}/erigon:/home/erigon/.local/share/erigon
-            # ${XDG_DATA_HOME:-~/.local/share}/erigon-prometheus:/prometheus
-            "/erigonData:/home/erigon/.local/share/erigon"
-        ]
+        // volumes = [
+        //     # Use absolute paths to mount arbitrary paths on the host
+        //     # {XDG_DATA_HOME:-~/.local/share}/erigon:/home/erigon/.local/share/erigon
+        //     # ${XDG_DATA_HOME:-~/.local/share}/erigon-prometheus:/prometheus
+        //     "/erigonVolumeData:/home/erigon/.local/share/erigon"
+        // ]
       }
       csi_plugin {
-        id        = "aws-ebs0"
-        type      = "controller"
-        mount_dir = "/erigonData"
+        id        = "aws-ebs"
+        type      = "node"
+        mount_dir = "/erigonVolumeData"
       }
       resources {
         cpu    = 500 # MHz
