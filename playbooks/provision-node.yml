@@ -61,6 +61,12 @@
         tags: 
           - nomad
       
+      - name: Upload nomad agent config file
+        copy:
+          src: ../templates/nomad.hcl
+          dest: "{{ nomad_agent_config }}"
+          mode: 0755
+
       - name: Configure Nomad Service
         template:
           src: ../templates/nomad.service.j2
