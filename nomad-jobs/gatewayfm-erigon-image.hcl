@@ -135,20 +135,6 @@ job "gatewayfm_job" {
         volumes = [
             "/erigonVolumeData/erigon_data:/home/erigon/.local/share/erigon"
         ]
-        // mount {
-        //   type     = "volume"
-        //   target   = "/home/erigon/.local/share/erigon"
-        //   source   = "erigonVolumeData"
-        //   readonly = false
-        //   bind_options {
-        //     propagation = "rshared"
-        //   }
-        // }
-
-        // volume_mount {
-        //     volume      = "rpcdaemon-volume"
-        //     destination = "${NOMAD_ALLOC_DIR}/erigonVolumeData"
-        //   }
       }
       resources {
         cpu    = 500  # MHz
@@ -199,15 +185,6 @@ job "gatewayfm_job" {
             propagation = "rshared"
           }
         }
-        // mount {
-        //   type = "volume"
-        //   target = "/etc/prometheus/prometheus.yml"
-        //   source = "erigonVolumeData"
-        //   readonly = false
-        //   bind_options {
-        //     propagation = "rshared"
-        //   }
-        // }
         // traget inside the container
         // source is the volume 
       }
