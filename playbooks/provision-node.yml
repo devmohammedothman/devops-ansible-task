@@ -5,7 +5,7 @@
 
     tasks:
       ## Mounting Volume on the host machine, Supposing that we are working on EC2 ubuntu machine with only root volume
-      - name: Ansible check directory.
+      - name: Check Volume directory.
         stat:
           path: /{{ volume_mount_dir }}
         register: volume_status
@@ -53,6 +53,13 @@
         tags: 
           - hostname
 
+      # - name: Check Nomad Agent File
+      #   stat:
+      #     path: /{{ nomad_agent_config }}
+      #   register: nomad_agent_status
+      #   tags: 
+      #     - nomad
+      
       - name: Install nomad if not exist on the remote node
         script: ../scripts/install-nomad.sh
         args:
@@ -65,7 +72,12 @@
         copy:
           src: ../templates/nomad.hcl
           dest: "{{ nomad_agent_config }}"
+          owner: root
+          group: root
           mode: 0755
+        # when: nomad_agent_status.stat.exists == false
+        tags: 
+          - nomad
 
       - name: Configure Nomad Service
         template:
@@ -85,7 +97,7 @@
             - "{{ nomad_status }}"
         tags: 
           - nomad
-
+      
       - name: EnableNOMAD Systemd Service
         systemd:
           name: nomad
@@ -94,6 +106,15 @@
         when: nomad_status
         tags: 
           - nomad
+      
+      - name: Systemctl Daemon Reload
+        command: systemctl daemon-reload
+        tags: 
+          - nomad
+      # - name: Start Nomad Service
+      #   command: systemctl start nomad
+      #   tags: 
+      #     - nomad
 
       - name: Install python-nomad
         pip:
