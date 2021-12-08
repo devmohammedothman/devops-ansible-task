@@ -53,7 +53,7 @@ Assumptions include:
 ![Alt text](erigon-project-Volume-Mount.jpg?raw=true "project")
 
 
-### Erigon Task rousources
+### Erigon Task resources
 
 ![Alt text](erigon-project-erigon-resources.jpg?raw=true "project")
 
