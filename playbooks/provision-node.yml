@@ -17,7 +17,7 @@
         when: volume_status.stat.exists
         tags: 
           - VolumeMount
-
+      
       - name: "Ansible Create directory if not exists"
         file:
           path: /{{ volume_mount_dir }}
@@ -28,6 +28,7 @@
         when: volume_status.stat.exists == false
         tags: 
           - VolumeMount
+
       - name: Format EBS Volume
         command: mkfs -t ext4 {{ volume_path }} 
         when: volume_status.stat.exists == false
@@ -36,6 +37,35 @@
       - name: Mount EBS Volume
         command: mount {{ volume_path }} /{{ volume_mount_dir }}
         ignore_errors: yes
+        tags: 
+          - VolumeMount
+
+      - name: Create Erigon Data Directories
+        file:
+          path: /{{ volume_mount_dir }}/{{erigon_dir}}
+          state: directory
+          mode: 0777
+          group: root
+          owner: root
+        tags: 
+          - VolumeMount
+      - name: Create Grafana Data Directories
+        file:
+          path: /{{ volume_mount_dir }}/{{grafana_dir}}
+          state: directory
+          mode: 0777
+          group: root
+          owner: root
+        tags: 
+          - VolumeMount
+      
+      - name: Create Prometheus Data Directories
+        file:
+          path: /{{ volume_mount_dir }}/{{prometheus_dir}}
+          state: directory
+          mode: 0777
+          group: root
+          owner: root
         tags: 
           - VolumeMount
 

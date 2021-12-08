@@ -60,13 +60,6 @@ job "gatewayfm_job" {
         static = "8545"
       }
 
-      port "http_9090" {
-        static = "9090"
-      }
-
-      port "http_3000" {
-        static = "3000"
-      }
     }
 
     // volume "erigon-volume" {
@@ -80,7 +73,7 @@ job "gatewayfm_job" {
     //     fs_type     = "ext4"
     //   }
     // }
-  
+
 
     # Create an individual task (unit of work). This particular
     # task utilizes a Docker container to front a web application.
@@ -88,66 +81,69 @@ job "gatewayfm_job" {
       # Specify the driver to be "docker". Nomad supports
       # multiple drivers.
       driver = "docker"
-      user = "erigon"
+      user   = "erigon"
       # Configuration is specific to each driver.
       config {
-        image = "thorax/erigon:latest"
+        image      = "thorax/erigon:latest"
         privileged = true
         args = [
-          "erigon" , "--chain=ropsten",
+          "erigon", "--chain=ropsten",
           "--metrics", "--metrics.addr=0.0.0.0",
           "--metrics.port=6060",
           "--private.api.addr=0.0.0.0:9090",
-          "--pprof", "--pprof.addr=0.0.0.0","--pprof.port=6061"
+          "--pprof", "--pprof.addr=0.0.0.0", "--pprof.port=6061"
         ]
-        // volumes = [
-        //     "/erigonVolumeData:/home/erigon/.local/share/erigon"
-        // ]
-        mount {
-          type = "volume"
-          target = "/home/erigon/.local/share/erigon"
-          source = "erigonVolumeData"
-          readonly = false
-          bind_options {
-            propagation = "rshared"
-          }
-        }
-        ports = ["http","tcp_30303","tcp_30304","udp_30303","udp_30304"]
+        volumes = [
+            "/erigonVolumeData/erigon_data/:/home/erigon/.local/share/erigon"
+        ]
+        // mount {
+        //   type     = "volume"
+        //   target   = "/home/erigon/.local/share/erigon"
+        //   source   = "erigonVolumeData"
+        //   readonly = false
+        //   bind_options {
+        //     propagation = "rshared"
+        //   }
+        // }
+        ports = ["http", "tcp_30303", "tcp_30304", "udp_30303", "udp_30304"]
       }
 
       # Specify the maximum resources required to run the task,
       # include CPU and memory.
       resources {
-        cpu    = 1000 # MHz
-        memory = 3000 # MB
+        cpu    = 2000 # MHz
+        memory = 4000 # MB
       }
     }
 
     task "rpcdaemon-task" {
       driver = "docker"
-      user = "erigon"
-      config{
-        image = "thorax/erigon:latest"
-        ports = ["http_8545"]
+      user   = "erigon"
+      config {
+        image      = "thorax/erigon:latest"
+        ports      = ["http_8545"]
         privileged = true
         args = [
           "rpcdaemon",
           "--private.api.addr=localhost:9090",
-          "--http.addr=0.0.0.0", 
+          "--http.addr=0.0.0.0",
           "--http.vhosts=*",
           "--http.corsdomain=*",
           "--http.api=eth,debug,net",
           "--ws"
         ]
-        mount {
-          type = "volume"
-          target = "/home/erigon/.local/share/erigon"
-          source = "erigonVolumeData"
-          readonly = false
-          bind_options {
-            propagation = "rshared"
-          }
-        }
+        volumes = [
+            "/erigonVolumeData/erigon_data:/home/erigon/.local/share/erigon"
+        ]
+        // mount {
+        //   type     = "volume"
+        //   target   = "/home/erigon/.local/share/erigon"
+        //   source   = "erigonVolumeData"
+        //   readonly = false
+        //   bind_options {
+        //     propagation = "rshared"
+        //   }
+        // }
 
         // volume_mount {
         //     volume      = "rpcdaemon-volume"
@@ -155,30 +151,44 @@ job "gatewayfm_job" {
         //   }
       }
       resources {
-        cpu    = 500 # MHz
-        memory = 256 # MB
+        cpu    = 500  # MHz
+        memory = 1000 # MB
       }
     }
 
+
+  }
+
+  ############################################################ Monitoring Group##############################################
+
+  group "prometheus-group" {
+    # Specify the number of these tasks we want.
+    count = 1
+
+    network {
+
+      port "http_9090" {
+        static = "9090"
+      }
+    }
     task "prometheus-task" {
       driver = "docker"
-      
       config {
-        image = "prom/prometheus:v2.30.2"
-        ports = ["http_9090"]
+        image      = "prom/prometheus:v2.30.2"
+        ports      = ["http_9090"]
         privileged = true
         args = [
-          "--log.level=warn" , "--config.file=/etc/prometheus/prometheus.yml",
-          "--storage.tsdb.path=/prometheus", 
+          "--log.level=warn", "--config.file=/etc/prometheus/prometheus.yml",
+          "--storage.tsdb.path=/prometheus",
           "--web.console.libraries=/usr/share/prometheus/console_libraries",
           "--web.console.templates=/usr/share/prometheus/consoles"
         ]
         // volumes = [
-        //     # Use absolute paths to mount arbitrary paths on the host
-        //     # ${ERIGON_PROMETHEUS_CONFIG:-./cmd/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml
-        //     # ${XDG_DATA_HOME:-~/.local/share}/erigon-prometheus:/prometheus
-        //     "/erigonVolumeData:/etc/prometheus/prometheus.yml",
-        //     "/erigonVolumeData:/prometheus"
+        //   # Use absolute paths to mount arbitrary paths on the host
+        //   # ${ERIGON_PROMETHEUS_CONFIG:-./cmd/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml
+        //   # ${XDG_DATA_HOME:-~/.local/share}/erigon-prometheus:/prometheus
+        //   # "/erigonVolumeData/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml",
+        //   "/erigonVolumeData:/prometheus"
         // ]
         mount {
           type = "volume"
@@ -202,45 +212,62 @@ job "gatewayfm_job" {
         // source is the volume 
       }
       resources {
-        cpu    = 256 # MHz
-        memory = 128 # MB
+        cpu    = 500  # MHz
+        memory = 500 # MB
+      }
+    }
+  }
+
+  group "grafana-group" {
+    # Specify the number of these tasks we want.
+    count = 1
+
+    network {
+      port "http_3000" {
+        static = "3000"
       }
     }
 
     task "grafana-task" {
       driver = "docker"
-
-      config{
-        image = "grafana/grafana:8.2.2"
-        ports = ["http_3000"]
-        privileged = false
-        mount {
-          type = "volume"
-          target = "/var/lib/grafana"
-          source = "erigonVolumeData"
-          readonly = false
-          bind_options {
-            propagation = "rshared"
-          }
-        }
-        mount {
-          type = "volume"
-          target = "/etc/grafana/provisioning/dashboards"
-          source = "erigonVolumeData"
-          readonly = false
-          bind_options {
-            propagation = "rshared"
-          }
-        }
-        mount {
-          type = "volume"
-          target = "/etc/grafana/provisioning/datasources"
-          source = "erigonVolumeData"
-          readonly = false
-          bind_options {
-            propagation = "rshared"
-          }
-        }
+      user   = 472
+      config {
+        image      = "grafana/grafana:8.2.2"
+        ports      = ["http_3000"]
+        privileged = true
+        volumes = [
+          # "/erigonVolumeData/grafana_data/grafana.ini:/etc/grafana/grafana.ini",
+          # "/erigonVolumeData/grafana_data:/var/lib/grafana",
+          "/erigonVolumeData/grafana_data:/etc/grafana/provisioning/dashboards",
+          "/erigonVolumeData/grafana_data:/etc/grafana/provisioning/datasources"
+        ]
+        // mount {
+        //   type = "volume"
+        //   target = "/var/lib/grafana"
+        //   source = "erigonVolumeData"
+        //   readonly = false
+        //   bind_options {
+        //     propagation = "rshared"
+        //   }
+        // }
+        // mount {
+        //   type = "volume"
+        //   target = "/etc/grafana/provisioning/dashboards"
+        //   source = "erigonVolumeData"
+        //   readonly = false
+        //   bind_options {
+        //     propagation = "rshared"
+        //   }
+        // }
+        // mount {
+        //   type = "volume"
+        //   target = "/etc/grafana/provisioning/datasources"
+        //   source = "erigonVolumeData"
+        //   readonly = false
+        //   bind_options {
+        //     propagation = "rshared"
+        //   }
+        // }
         // mount {
         //   type = "volume"
         //   target = "/etc/grafana/grafana.ini"
@@ -251,12 +278,10 @@ job "gatewayfm_job" {
         //   }
         // }
       }
-      
       resources {
-        cpu    = 256 # MHz
-        memory = 128 # MB
+        cpu    = 500  # MHz
+        memory = 500 # MB
       }
-
     }
   }
 }
