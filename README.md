@@ -110,7 +110,10 @@ nomad alloc status ALLOCID
 
 ## 🚀 Deployment <a name = "deployment"></a>
 
-Add additional notes about how to deploy this on a live system.
+This project assumes the Node machines will be AWS EC2 Ubuntu 20.4 based, with attached EBS Volume
+Machine specs should be at least 4 GB RAM, 4 Core CPU
+
+Deployment Easily managed with ansible and you can override vars.yml file for certain variables values.
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
