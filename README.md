@@ -44,9 +44,18 @@ Assumptions include:
  -- Attached Volume
  -- Ansible installed on the control machine
 
-### Project Structure and Ansible Playbooks
+## Project Structure and Ansible Playbooks & Example Outputs
 
 ![Alt text](erigon-project-directory-structure.jpg?raw=true "project")
+
+### Mounted Volume Data
+
+![Alt text](erigon-project-Volume-Mount.jpg?raw=true "project")
+
+
+### Erigon Task rousources
+
+![Alt text](erigon-project-erigon-resources.jpg?raw=true "project")
 
 ```
 basic-utility this playbook will configre/install basic requirements
