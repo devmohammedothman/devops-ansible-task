@@ -82,13 +82,6 @@
           state: present
         tags: 
           - hostname
-
-      # - name: Check Nomad Agent File
-      #   stat:
-      #     path: /{{ nomad_agent_config }}
-      #   register: nomad_agent_status
-      #   tags: 
-      #     - nomad
       
       - name: Install nomad if not exist on the remote node
         script: ../scripts/install-nomad.sh

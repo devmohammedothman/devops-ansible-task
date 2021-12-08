@@ -25,7 +25,7 @@
 - [About](#about)
 - [Getting Started](#getting_started)
 - [Deployment](#nomad_Jobs)
-- [Usage](#usage)
+- [Usage](#Steps)
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgement)
 
@@ -44,9 +44,9 @@ Assumptions include:
  -- Attached Volume
  -- Ansible installed on the control machine
 
-### Ansible Playbooks
+### Project Structure and Ansible Playbooks
 
-What things you need to install the software and how to install them.
+![Alt text](erigon-project-directory-structure.jpg?raw=true "project")
 
 ```
 basic-utility this playbook will configre/install basic requirements
@@ -92,9 +92,21 @@ nomad alloc status ALLOCID
 ```
 
 
-## 🎈 Usage <a name="usage"></a>
+## 🎈 Steps <a name="Steps"></a>
 
-Add notes about how to use the system.
+ - Install basic Utilities
+ - Provision Machine 
+    * Mount Driver related tasks.
+    * Update Host Name
+    * Install & Configure Nomad 
+    *  Enable Nomad Agent/Service on Systemd
+    * Install Docker
+ - Deploy Ethereum node as a container into Nomad with the following tasks
+    * Configure Job
+    * Configure erigon 
+    * Configure Prometheus
+    * Configure Grafana
+    * Mount Docker Volumes
 
 ## 🚀 Deployment <a name = "deployment"></a>
 
@@ -114,3 +126,27 @@ Add additional notes about how to deploy this on a live system.
 
 - Inspiration
 - References
+  * https://github.com/ledgerwatch/erigon/blob/stable/docker-compose.yml
+
+  * https://discuss.hashicorp.com/t/translating-docker-compose-yml-with-multiple-services-using-a-common-image-to-nomad-job/21071
+
+  * https://docs.ansible.com/ansible/latest/collections/community/general/nomad_job_module.html#examples
+
+  * https://www.nomadproject.io/docs/drivers/docker#init
+  * https://www.shubhamdipt.com/blog/how-to-create-a-systemd-service-in-linux/
+
+  * https://learn.hashicorp.com/tutorials/nomad/production-deployment-guide-vm-with-consul#configure-systemd
+
+  * https://devopscube.com/mount-ebs-volume-ec2-instance/
+
+  * https://learn.hashicorp.com/tutorials/nomad/get-started-ui?in=nomad/get-started
+
+  * https://learn.hashicorp.com/tutorials/nomad/jobs-configuring?in=nomad/manage-jobs
+
+  * https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#define-variables-in-inventory
+
+  * https://prometheus.io/docs/prometheus/latest/getting_started/
+
+  * https://pypi.org/project/python-nomad/
+
+  * https://community.grafana.com/t/new-docker-install-with-persistent-storage-permission-problem/10896

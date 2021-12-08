@@ -51,20 +51,4 @@
         tags: 
           - utils
           - reboot
-
-
-## This module acts as a proxy to the underlying package manager module.
-      ## without having to create a specific task for each package manager
-      ## If setup was not yet run, package will run it.
-          # - python3-setuptools
-          # - python3-pip
-          # - python3-lxml
-          # - vim
-          # - lsof
-          # - strace
-          # - htop
-      # - name: Install curl
-      #   package:
-      #     name: curl
-      #     state: present
       
