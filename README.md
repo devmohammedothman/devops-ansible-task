@@ -57,6 +57,10 @@ Assumptions include:
 
 ![Alt text](erigon-project-erigon-resources.jpg?raw=true "project")
 
+### Nomad All Services
+
+![Alt text](erigon-project-all-services.jpg?raw=true "project")
+
 ```
 basic-utility this playbook will configre/install basic requirements
 provision-node this playbook will install Docker and Nomda as a container orchestrator.
