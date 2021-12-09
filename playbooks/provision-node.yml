@@ -5,75 +5,76 @@
 
     tasks:
       ## Mounting Volume on the host machine, Supposing that we are working on EC2 ubuntu machine with only root volume
-      - name: Check Volume directory.
+      - name: Check Persistent Data directory.
         stat:
-          path: /{{ volume_mount_dir }}
+          path: /erigonVolumeData
         register: volume_status
         tags: 
-          - VolumeMount
+          - Persistance
       - name: "echo if directory already existed"
         debug:
           msg: "Mounted directory is already existed"
         when: volume_status.stat.exists
         tags: 
-          - VolumeMount
+          - Persistance
       
       - name: "Ansible Create directory if not exists"
         file:
-          path: /{{ volume_mount_dir }}
+          path: /erigonVolumeData
           state: directory
           mode: 0755
           group: root
           owner: root
         when: volume_status.stat.exists == false
         tags: 
-          - VolumeMount
+          - Persistance
 
+      # This play will be run in case of needed Volume Mount on AWS EC2 as a prerequiste for using EBS Volumes
       - name: Format EBS Volume
         command: mkfs -t ext4 {{ volume_path }} 
         when: volume_status.stat.exists == false
         tags: 
-          - VolumeMount
+          - EBSVolumeMount
       - name: Mount EBS Volume
-        command: mount {{ volume_path }} /{{ volume_mount_dir }}
+        command: mount {{ volume_path }} /erigonVolumeData
         ignore_errors: yes
         tags: 
-          - VolumeMount
+          - EBSVolumeMount
 
       - name: Create Erigon Data Directories
         file:
-          path: /{{ volume_mount_dir }}/{{erigon_dir}}
+          path: /erigonVolumeData/erigon_data
           state: directory
           mode: 0777
           group: root
           owner: root
         tags: 
-          - VolumeMount
+          - Persistance
       - name: Create Grafana Data Directories
         file:
-          path: /{{ volume_mount_dir }}/{{grafana_dir}}
+          path: /erigonVolumeData/grafana_data
           state: directory
           mode: 0777
           group: root
           owner: root
         tags: 
-          - VolumeMount
+          - Persistance
       
       - name: Create Prometheus Data Directories
         file:
-          path: /{{ volume_mount_dir }}/{{prometheus_dir}}
+          path: /erigonVolumeData/prometheus_data
           state: directory
           mode: 0777
           group: root
           owner: root
         tags: 
-          - VolumeMount
+          - Persistance
 
       - name: Update Hostnames
         hostname:
           name: "{{ new_hostname }}"
         tags: 
-          - hostname
+          - Hostname
       - name: Add hostname to /etc/hosts
         lineinfile:
           path: /etc/hosts
@@ -81,7 +82,7 @@
           line: '127.0.0.1 localhost {{ new_hostname }}'
           state: present
         tags: 
-          - hostname
+          - Hostname
       
       - name: Install nomad if not exist on the remote node
         script: ../scripts/install-nomad.sh
@@ -89,7 +90,7 @@
           creates: /install-nomad.sh
         register: nomad_status
         tags: 
-          - nomad
+          - Nomad
       
       - name: Upload nomad agent config file
         copy:
@@ -99,7 +100,7 @@
           group: root
           mode: 0755
         tags: 
-          - nomad
+          - Nomad
 
       - name: Configure Nomad Service
         template:
@@ -111,14 +112,14 @@
         notify: 
           - RetartNOMAD
         tags: 
-          - nomad
+          - Nomad
         
       - name: Debug Status
         debug:
           msg: 
             - "{{ nomad_status }}"
         tags: 
-          - nomad
+          - Nomad
       
       - name: EnableNOMAD Systemd Service
         systemd:
@@ -127,18 +128,18 @@
           state: started
         when: nomad_status
         tags: 
-          - nomad
+          - Nomad
       
       - name: Systemctl Daemon Reload
         command: systemctl daemon-reload
         tags: 
-          - nomad
+          - Nomad
 
       - name: Install python-nomad
         pip:
           name: python-nomad
         tags: 
-          - nomad
+          - Nomad
           
       - name: Install Docker
         script: ../scripts/install-docker.sh
@@ -146,18 +147,18 @@
           creates: /install-docker.sh
         register: install_docker
         tags: 
-          - docker
+          - Docker
     
       - name: debug docker install
         debug:
           msg: "{{install_docker}}"
         tags: 
-          - docker
+          - Docker
 
     handlers:
       - name: RetartNOMAD
         service: name=nomad state=restarted
         tags: 
-          - nomad
+          - Nomad
       
       

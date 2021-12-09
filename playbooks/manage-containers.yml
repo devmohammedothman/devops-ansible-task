@@ -18,7 +18,7 @@
         use_ssl: no
         validate_certs: no
       tags:
-        - erigon_nomad_job
+        - Erigon_nomad_job
         
     
     

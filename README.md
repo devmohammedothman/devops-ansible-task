@@ -24,8 +24,10 @@
 
 - [About](#about)
 - [Getting Started](#getting_started)
-- [Deployment](#nomad_Jobs)
-- [Usage](#Steps)
+- [Running Nomad](#nomad_Jobs)
+- [Steps](#Steps)
+- [Deployment](#deployment)
+- [Built Using](#built_using)
 - [Authors](#authors)
 - [Acknowledgments](#acknowledgement)
 
@@ -86,9 +88,21 @@ ansible-playbook playbooks/manage-containers.yml
 Also you can specify to run playbook with --tags option
 
 ```
-ansible-playbook playbooks/basic-utility.yml --tags utils
-ansible-playbook playbooks/provision-node.yml --tags docker
-ansible-playbook playbooks/provision-node.yml --tags docker
+You can add or skip tags from below list of tags as you want to run the playbook
+  - Utils
+  - Persistance
+  - EBSVolumeMount
+  - Hostname
+  - Nomad
+  - Docker
+  - Erigon_nomad_job
+```
+```
+For example , if you want to run only Utils , Nomad, Docker Tasks
+
+ - ansible-playbook playbooks/basic-utility.yml --tags Utils
+ - ansible-playbook playbooks/provision-node.yml --tags Nomad
+ - ansible-playbook playbooks/provision-node.yml --tags Docker
 ```
 .
 
@@ -128,6 +142,23 @@ Machine specs should be at least 4 GB RAM, 4 Core CPU
 
 Deployment Easily managed with ansible and you can override vars.yml file for certain variables values.
 
+### Regarding Deploying on Non AWS EC2 or EC2 without attached EBS Volume , you need to skip EBSVolumeMount tasks, as below
+
+You may need to first set the value of this variable 
+```
+volume_path: /dev/nvme1n1
+```
+For Running on machine without Attached EBS Volume
+
+```
+ansible-playbook main.yml --skip-tags EBSVolumeMount
+```
+
+All Data should be saved in below paths
+```
+/erigonVolumeData/
+```
+
 ## ⛏️ Built Using <a name = "built_using"></a>
 
 - [Ansible](https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html) - Ansible
@@ -135,7 +166,7 @@ Deployment Easily managed with ansible and you can override vars.yml file for ce
 
 ## ✍️ Authors <a name = "authors"></a>
 
-- [@DEV.MOHAMMED.OTHMAN](https://github.com/devmohammedothman/) - Idea & Initial work
+- [@DEV.MOHAMMED.OTHMAN](https://github.com/devmohammedothman/) - Design & Implementation work
 
 
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
