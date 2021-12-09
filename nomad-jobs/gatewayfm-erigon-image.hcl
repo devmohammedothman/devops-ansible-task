@@ -156,8 +156,6 @@ job "gatewayfm_job" {
             propagation = "rshared"
           }
         }
-        // traget inside the container
-        // source is the volume 
       }
       resources {
         cpu    = 500  # MHz
