@@ -1,11 +1,7 @@
 ---
 
 volume_path: /dev/nvme1n1
-# volume_mount_dir: erigonVolumeData
 
-# erigon_dir: erigon_data
-# grafana_dir: grafana_data
-# prometheus_dir: prometheus_data
 
 
 nomad_agent_config: /etc/nomad.d/nomad.hcl
