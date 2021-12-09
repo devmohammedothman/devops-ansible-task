@@ -18,7 +18,4 @@ sudo apt-get install nomad
 # check nomad version
 nomad -version
 
-# Start Nomad Agent in Dev mode
-# sudo nomad agent -dev -bind 0.0.0.0
-
 echo "Installed Successfully"

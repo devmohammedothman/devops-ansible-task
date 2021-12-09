@@ -62,19 +62,6 @@ job "gatewayfm_job" {
 
     }
 
-    // volume "erigon-volume" {
-    //   type            = "csi"
-    //   source          = "erigonVolumeData"
-    //   read_only       = false
-    //   attachment_mode = "file-system"
-    //   access_mode     = "single-node-writer"
-    //   per_alloc       = true
-    //   mount_options {
-    //     fs_type     = "ext4"
-    //   }
-    // }
-
-
     # Create an individual task (unit of work). This particular
     # task utilizes a Docker container to front a web application.
     task "erigon-task" {
@@ -96,15 +83,6 @@ job "gatewayfm_job" {
         volumes = [
             "/erigonVolumeData/erigon_data/:/home/erigon/.local/share/erigon"
         ]
-        // mount {
-        //   type     = "volume"
-        //   target   = "/home/erigon/.local/share/erigon"
-        //   source   = "erigonVolumeData"
-        //   readonly = false
-        //   bind_options {
-        //     propagation = "rshared"
-        //   }
-        // }
         ports = ["http", "tcp_30303", "tcp_30304", "udp_30303", "udp_30304"]
       }
 
@@ -169,13 +147,6 @@ job "gatewayfm_job" {
           "--web.console.libraries=/usr/share/prometheus/console_libraries",
           "--web.console.templates=/usr/share/prometheus/consoles"
         ]
-        // volumes = [
-        //   # Use absolute paths to mount arbitrary paths on the host
-        //   # ${ERIGON_PROMETHEUS_CONFIG:-./cmd/prometheus/prometheus.yml}:/etc/prometheus/prometheus.yml
-        //   # ${XDG_DATA_HOME:-~/.local/share}/erigon-prometheus:/prometheus
-        //   # "/erigonVolumeData/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml",
-        //   "/erigonVolumeData:/prometheus"
-        // ]
         mount {
           type = "volume"
           target = "/prometheus"
@@ -218,42 +189,7 @@ job "gatewayfm_job" {
           "/erigonVolumeData/grafana_data:/etc/grafana/provisioning/dashboards",
           "/erigonVolumeData/grafana_data:/etc/grafana/provisioning/datasources"
         ]
-        // mount {
-        //   type = "volume"
-        //   target = "/var/lib/grafana"
-        //   source = "erigonVolumeData"
-        //   readonly = false
-        //   bind_options {
-        //     propagation = "rshared"
-        //   }
-        // }
-        // mount {
-        //   type = "volume"
-        //   target = "/etc/grafana/provisioning/dashboards"
-        //   source = "erigonVolumeData"
-        //   readonly = false
-        //   bind_options {
-        //     propagation = "rshared"
-        //   }
-        // }
-        // mount {
-        //   type = "volume"
-        //   target = "/etc/grafana/provisioning/datasources"
-        //   source = "erigonVolumeData"
-        //   readonly = false
-        //   bind_options {
-        //     propagation = "rshared"
-        //   }
-        // }
-        // mount {
-        //   type = "volume"
-        //   target = "/etc/grafana/grafana.ini"
-        //   source = "erigonVolumeData"
-        //   readonly = false
-        //   bind_options {
-        //     propagation = "rshared"
-        //   }
-        // }
+       
       }
       resources {
         cpu    = 500  # MHz

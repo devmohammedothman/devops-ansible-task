@@ -10,8 +10,4 @@ prometheus_dir: prometheus_data
 
 nomad_agent_config: /etc/nomad.d/nomad.hcl
 
-create_containers: 1
-default_container_name: hello-world-container
-default_container_image: hello-world
-default_container_command: sleep 1d
 

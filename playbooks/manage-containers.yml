@@ -1,5 +1,5 @@
 #################################################
-# DO Community Playbooks: Docker
+# Nomad Containers Playbooks
 #################################################
 ---
 - hosts: workernodes

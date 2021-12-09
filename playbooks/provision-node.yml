@@ -98,7 +98,6 @@
           owner: root
           group: root
           mode: 0755
-        # when: nomad_agent_status.stat.exists == false
         tags: 
           - nomad
 
@@ -134,10 +133,6 @@
         command: systemctl daemon-reload
         tags: 
           - nomad
-      # - name: Start Nomad Service
-      #   command: systemctl start nomad
-      #   tags: 
-      #     - nomad
 
       - name: Install python-nomad
         pip:
